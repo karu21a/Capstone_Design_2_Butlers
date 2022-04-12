@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace K.Monster
 {
-    public class M_Cheese : MonoBehaviour
+    public class M_Rat : MonoBehaviour
     {
         NormalMonster data;
         Rigidbody rigid;
         Transform pinPos;
-        float springTime;
+        float wanderTime;
         [SerializeField]
-        float springRate;
+        float wanderRate;
         [SerializeField]
-        float springForce;
+        float wanderForce;
         GameObject player;
 
 
@@ -31,29 +31,28 @@ namespace K.Monster
 
         void Update()
         {
-            if(springTime < springRate)
+            if(wanderTime < wanderRate)
             {
-                springTime += Time.deltaTime;
+                wanderTime += Time.deltaTime;
             }
-            if(springTime >= springRate)
+            if(wanderTime >= wanderRate)
             {
                 //Debug.Log("호출");
-                rigid.AddForce(new Vector3(0f, springForce, 0f), ForceMode.Impulse);
                 //플레이어가 시야에 들어오면 쫒음
                 float dotValue = Mathf.Cos(Mathf.Deg2Rad * (180/2));
                 Vector3 dic = player.transform.position - this.transform.position;
 
-                if(dic.magnitude < 30)
+                if(dic.magnitude < 20)
                 {
                     if(Vector3.Dot(dic.normalized, this.transform.forward) > dotValue)
                     {
                         attack();
                         Debug.Log(this.gameObject.name + "col");
-                        springTime = 0f;
-                        if(springRate >= 1.5f)
-                            springRate += Random.Range(0f, 0.5f);
-                        if(springRate > 2f)
-                            springRate = 1.5f;
+                        wanderTime = 0f;
+                        if(wanderRate >= 1.5f)
+                            wanderRate += Random.Range(0f, 0.5f);
+                        if(wanderRate > 2f)
+                            wanderRate = 1.5f;
                         return;
                     }
                     else
@@ -64,11 +63,11 @@ namespace K.Monster
                     wander();
                 }
 
-                springTime = 0f;
-                if(springRate >= 1.5f)
-                    springRate += Random.Range(0f, 0.4f);
-                if(springRate > 3f)
-                    springRate = 2f;
+                wanderTime = 0f;
+                if(wanderRate >= 1.5f)
+                    wanderRate += Random.Range(0f, 0.4f);
+                if(wanderRate > 3f)
+                    wanderRate = 2f;
             }
 
         }
@@ -85,15 +84,21 @@ namespace K.Monster
             //경계 영역
             if(dis.magnitude >= 30f)
             {
-                rigid.AddForce(new Vector3(dis.x/3, 0f, dis.z/3), ForceMode.Impulse);
+                rigid.AddForce(new Vector3(dis.x*3, 0f, dis.z*3), ForceMode.Impulse);
                 this.transform.rotation = Quaternion.LookRotation(dis.normalized);
             }
             if(dis.magnitude < 30f)
             {
-                rigid.AddForce((mtop.normalized)*5f, ForceMode.Impulse);
+                //rigid.AddForce((mtop.normalized)*40f, ForceMode.Impulse);
+                StartCoroutine(AttackToPlayer(mtop));
                 this.transform.rotation = Quaternion.LookRotation(mtop.normalized);
                 
             }
+        }
+        IEnumerator AttackToPlayer(Vector3 mtop)
+        {
+            yield return new WaitForSeconds(0.2f);
+            rigid.AddForce((mtop.normalized)*40f, ForceMode.Impulse);
         }
         void wander()
         {
@@ -106,25 +111,25 @@ namespace K.Monster
             //Debug.Log(dis.magnitude);
             if(dis.magnitude >= 15f-4f)
             {
-                rigid.AddForce(new Vector3(dis.x/2, 0f, dis.z/2), ForceMode.Impulse);
+                rigid.AddForce(new Vector3(dis.x*3, 0f, dis.z*3), ForceMode.Impulse);
                 this.transform.rotation = Quaternion.LookRotation(dis.normalized);
             }
             if(dis.magnitude < 15f-4f)
             {
-                Vector3 v = new Vector3(rand(), 0f, rand());
+                Vector3 v = new Vector3(rand(5f), 0f, rand(5f));
                 rigid.AddForce(v, ForceMode.Impulse);
                 this.transform.rotation = Quaternion.LookRotation(v.normalized);
                 
             }
         }
 
-        float rand()
+        float rand(float weight)
         {
             int MorP = Random.Range(0, 2);
             if(MorP  == 0)
-                return Random.Range(-5f, -3f);
+                return Random.Range(-5f *weight, -3f*weight);
             if(MorP == 1)
-                return Random.Range(3f, 5f);
+                return Random.Range(3f*weight, 5f*weight);
 
             Debug.Log("M_Cheese/rand(): MorP is not 0 or 1");
             return 0f;
