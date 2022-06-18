@@ -51,9 +51,4 @@ public class changeImage : MonoBehaviour
         this_Image = GetComponent<Image>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
 }
