@@ -46,6 +46,9 @@ namespace K.Monster
         //특정 위치를 왔다갔다 함
         //플레이어 발견 시 플레이어를 향해 빠르게 돌진
         //플레이어 바로 앞에서 날아올라 내려찍기
+        float springForce;
+        GameObject player;
+
         void Awake()
         {
             //파라미터 부분은 파서 완성되는 대로 수정
@@ -93,6 +96,39 @@ namespace K.Monster
                 //플레이어가 시야에 들어오면 쫒음
                 float dotValue = Mathf.Cos(Mathf.Deg2Rad * (160/2));
                 Vector3 dic = player.transform.position - this.transform.position;
+                //Debug.Log("호출");
+                rigid.AddForce(new Vector3(0f, springForce, 0f), ForceMode.Impulse);
+                //플레이어가 시야에 들어오면 쫒음
+                float dotValue = Mathf.Cos(Mathf.Deg2Rad * (180/2));
+                Vector3 dic = player.transform.position - this.transform.position;
+
+                if(dic.magnitude < 30)
+                {
+                    if(Vector3.Dot(dic.normalized, this.transform.forward) > dotValue)
+                    {
+                        attack();
+                        Debug.Log(this.gameObject.name + "col");
+                        springTime = 0f;
+                        if(springRate >= 1.5f)
+                            springRate += Random.Range(0f, 0.5f);
+                        if(springRate > 2f)
+                            springRate = 1.5f;
+                        return;
+                    }
+                    else
+                        wander();
+                }
+                else
+                {
+                    wander();
+                }
+
+                springTime = 0f;
+                if(springRate >= 1.5f)
+                    springRate += Random.Range(0f, 0.4f);
+                if(springRate > 3f)
+                    springRate = 2f;
+            }
 
                 if(dic.magnitude < 15f)
                 {
@@ -156,6 +192,24 @@ namespace K.Monster
         }
 
         void attack(float speedRate)
+        void attack()
+        {
+            Vector3 mtop = player.transform.position - this.transform.position;
+            Vector3 dis = pinPos.position - this.transform.position;
+            //경계 영역
+            if(dis.magnitude >= 30f)
+            {
+                rigid.AddForce(new Vector3(dis.x/3, 0f, dis.z/3), ForceMode.Impulse);
+                this.transform.rotation = Quaternion.LookRotation(dis.normalized);
+            }
+            if(dis.magnitude < 30f)
+            {
+                rigid.AddForce((mtop.normalized)*5f, ForceMode.Impulse);
+                this.transform.rotation = Quaternion.LookRotation(mtop.normalized);
+                
+            }
+        }
+        void wander()
         {
             Vector3 mtop = player.transform.position - this.transform.position;
             Vector3 dis = pinPos.position - this.transform.position;
@@ -166,6 +220,13 @@ namespace K.Monster
                 this.transform.rotation = Quaternion.LookRotation(dis.normalized);
                 this.transform.GetChild(4).GetComponent<Renderer>().material.color = Color.white;
                 attackState = false;
+            //Debug.Log("ch: "+this.transform.position);
+            //Debug.Log("pin: "+pinPos.position);
+            //Debug.Log(dis.magnitude);
+            if(dis.magnitude >= 15f-4f)
+            {
+                rigid.AddForce(new Vector3(dis.x/2, 0f, dis.z/2), ForceMode.Impulse);
+                this.transform.rotation = Quaternion.LookRotation(dis.normalized);
             }
             //경계 영역 안
             if(dis.magnitude < 20f)
@@ -201,6 +262,10 @@ namespace K.Monster
                     }
                 }
                 //StartCoroutine(AttackToPlayer(mtop));
+                Vector3 v = new Vector3(rand(), 0f, rand());
+                rigid.AddForce(v, ForceMode.Impulse);
+                this.transform.rotation = Quaternion.LookRotation(v.normalized);
+                
             }
         }
 
